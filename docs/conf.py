@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+# http://blog.rtwilson.com/how-to-make-your-sphinx-documentation-compile-with-readthedocs-when-youre-using-numpy-and-scipy/
+import mock
+ 
+MOCK_MODULES = ['wxPython']
+for mod_name in MOCK_MODULES:
+sys.modules[mod_name] = mock.Mock()
+
+
+
 import os
 
 extensions = [
