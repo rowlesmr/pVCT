@@ -16,6 +16,7 @@ diffraction patterns.
 
 To do so, information must be given to the program to calculate the way in which to sum the given diffraction data.
 Compulsory information is:
+
 * ``lam``: (float) wavelength in A or energy in keV.
 * ``mono``: (float) monochromator angle in deg 2Th (0 for none, 90 for synchrotron).
 * ``B``: (float) average temperature factor (0.5 is a good start).
@@ -25,10 +26,11 @@ Compulsory information is:
 * ``max``: (float) maximum angle in deg 2Th.
   
 You must also give one of the following options:
+
 * --filenames: (string) list of file names - XY or XYE format. Wildcards accepted eg *.xy, la?.xy
 * -D: (int) number of diffraction patterns to simulate.
 
-One suggested workflow is to run ``pvct`` in simulation mode using the known experimental parameters with :math:`D\\approx`$ 20. An FCT diffraction pattern is then collected to assess both the factor, :math:`D`, by which the intensities at that position must be increased to match the intensities of the low angle peaks, and the required collection time to give adequate intensities for the low angle peaks. :math:`D` FCT diffraction patterns are collected, and ``pvct`` is then used to create a pVCT diffraction pattern. 
+One suggested workflow is to run ``pvct`` in simulation mode using the known experimental parameters with :math:`D\approx` 20. An FCT diffraction pattern is then collected to assess both the factor, :math:`D`, by which the intensities at that position must be increased to match the intensities of the low angle peaks, and the required collection time to give adequate intensities for the low angle peaks. :math:`D` FCT diffraction patterns are collected, and ``pvct`` is then used to create a pVCT diffraction pattern. 
 
 Two examples of valid invocations of ``pvct`` are ::
 
