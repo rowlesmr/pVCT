@@ -4,9 +4,6 @@ from __future__ import unicode_literals
 # http://blog.rtwilson.com/how-to-make-your-sphinx-documentation-compile-with-readthedocs-when-youre-using-numpy-and-scipy/
 import mock
  
-MOCK_MODULES = ['wxPython']
-for mod_name in MOCK_MODULES:
-sys.modules[mod_name] = mock.Mock()
 
 
 
@@ -54,3 +51,8 @@ html_short_title = '%s-%s' % (project, version)
 napoleon_use_ivar = True
 napoleon_use_rtype = False
 napoleon_use_param = False
+
+
+MOCK_MODULES = ['wxPython']
+for mod_name in MOCK_MODULES:
+sys.modules[mod_name] = mock.Mock()
