@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-# 
-import mock
- 
-MOCK_MODULES = ['wxpython']
-for mod_name in MOCK_MODULES:
-sys.modules[mod_name] = mock.Mock()
-
-
-
 import os
 
 extensions = [
