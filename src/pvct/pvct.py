@@ -8,10 +8,11 @@ Created on Sun May  2 15:10:11 2021
 import math
 import sys
 import copy
-import pdiffutils as du
+from pdiffutils import DiffractionExperiment, DiffractionPattern
+from typing import List, Tuple
 
 
-def first_last_index(lst, val):
+def first_last_index(lst: List[int], val: int) -> Tuple[int, int]:
     """
     Returns a tuple containing the first and last indicies
 
@@ -77,10 +78,7 @@ def first_last_index(lst, val):
             break
 
     # get the last
-    if lst[-1] > val:
-        last = len(lst)
-    else:
-        last = len(lst) - lst[::-1].index(val)
+    last = len(lst) if lst[-1] > val else len(lst) - lst[::-1].index(val)
 
     while last < len(lst):
         if lst[last] < lst[first]:  # then there really is only one
@@ -95,7 +93,7 @@ def first_last_index(lst, val):
     return first, last - 1
 
 
-def removeExtension(filename):
+def remove_extension(filename: str) -> str:
     """
     Removes the extension on a filename
 
@@ -111,7 +109,7 @@ def removeExtension(filename):
     return filename[0:filename.rindex(".")]
 
 
-def group(lst, n):
+def group(lst: List, n: int) -> List[Tuple]:
     """
     Splits a list into tuples of length n
     https://stackoverflow.com/a/15480610/36061
@@ -249,27 +247,27 @@ g6 = (1.99679361896789136501e0,
       -0.1e-19)
 
 
-def diff0_small(x):
+def diff0_small(x: float) -> float:
     t = (6.0 * x - 40.0) / (x + 40.0)
     return cheval(len(g2), g2, t)
 
 
-def diff0_large(x):
+def diff0_large(x: float) -> float:
     t = (800 - x * x) / (288 + x * x)
     return cheval(22, g3, t) * TWOBPI / x
 
 
-def diff1_small(x):
+def diff1_small(x: float) -> float:
     t = (6 * x - 40) / (x + 40)
     return cheval(21, g5, t) * x / 2.0
 
 
-def diff1_large(x):
+def diff1_large(x: float) -> float:
     t = (800 - x * x) / (288 + x * x)
     return cheval(23, g6, t) * TWOBPI
 
 
-def IL0(x):
+def IL0(x: float) -> float:
     XLOW = 1.11022303e-16
     XHIGH = 1.8981253e9
     if x < 0.0:
@@ -284,7 +282,7 @@ def IL0(x):
         return diff0_large(x)
 
 
-def IL1(x):
+def IL1(x: float) -> float:
     XLOW = 2.22044605e-16
     XHIGH = 1.8981253e9
     if x < 0.0:
@@ -299,15 +297,15 @@ def IL1(x):
         return diff1_large(x)
 
 
-def AL(z):
+def AL(z: float) -> float:
     return 2 * (IL0(z) - (IL1(z) / z))
 
 
-def AB(z):
+def AB(z: float) -> float:
     return IL1(2 * z) / z
 
 
-def cheval(N, A, T):
+def cheval(N: int, A: List[float], T: float) -> float:
     """
     This function evaluates a Chebyshev series, using the
     Clenshaw method with Reinsch modification, as analysed
@@ -511,13 +509,13 @@ class PVCT:
         "Th": 90, "Pa": 91, "U": 92, "Np": 93, "Pu": 94,
         "Am": 95, "Cm": 96, "Bk": 97, "Cf": 98}
 
-    def __init__(self, lam=1.5406,
-                 mono=0,
-                 B=1,
-                 muR=0,
-                 formula="Fe 1",
-                 min_angle=10,
-                 max_angle=145):
+    def __init__(self, lam: float = 1.5406,
+                 mono: float = 0,
+                 B: float = 1,
+                 muR: float = 0,
+                 formula: str = "Fe 1",
+                 min_angle: float = 10,
+                 max_angle: float = 145):
         """
         x
 
@@ -544,11 +542,7 @@ class PVCT:
         None.
 
         """
-        if lam > 4:
-            self.lam = lam / 12.39837457
-        else:
-            self.lam = lam
-
+        self.lam = lam / 12.39837457 if lam > 4 else lam
         self.formula = formula
         self.muR = muR
         self.B = B
@@ -558,23 +552,23 @@ class PVCT:
         self.isFlatPlate = self.muR >= 5.0  # more than 5 == flat plate
 
         # these are here so they're here from the start
-        self.D = None
+        self.d = None
         self.filenames = None
         self.pvct = None  # This will be the final pVCT DiffractionPattern
         self.pvct_sum = None  # Ths will be the sum DiffractionPattern before averaging
         self.s_array = None
         self.angle_array = None
         self.summary = None
-        self.patterns = []
+        self.patterns = None
 
-    def simulate(self, D=10):
+    def simulate(self, d: int = 10) -> None:
         """
         Do a simulation of a pVCT experiment with a certain number of datasets
         The min and max angles are taken from the object initialisation
 
         Parameters
         ----------
-        D : int, optional
+        d : int, optional
             Number of diffraction patterns to simulate. The default is 10.
 
         Returns
@@ -582,7 +576,7 @@ class PVCT:
         None.
 
         """
-        self.D = D
+        self.d = d
         stop = self.max_angle
         start = self.min_angle
         step = 0.05
@@ -595,7 +589,7 @@ class PVCT:
         for i in range(nstps):
             self.angle_array[i] = start + i * step
 
-    def read_filenames(self, filenames):
+    def read_filenames(self, filenames: List[str]) -> None:
         """
         set the filenames from which I'm going to read the diffraction patterns
 
@@ -610,27 +604,28 @@ class PVCT:
 
         """
         self.filenames = filenames[:]
-        self.D = len(filenames)
+        self.d = len(filenames)
 
-        for name in filenames:
-            # print(f"Now reading {name}.")
-            pattern = du.DiffractionPattern(name)
-            self.patterns.append(pattern)
+        dps = [DiffractionPattern(filename=name) for name in filenames]
+        self.patterns = DiffractionExperiment(diffpats=dps)
 
-        if self.min_angle < self.patterns[0].getMinAngle() or self.min_angle == -1:
-            self.min_angle = self.patterns[0].getMinAngle()
+        if self.min_angle < self.patterns.diffpats[0][0] or self.min_angle == -1:
+            self.min_angle = self.patterns.diffpats[0][0]
 
-        if self.max_angle < self.patterns[0].getMaxAngle() or self.max_angle == -1:
-            self.max_angle = self.patterns[0].getMaxAngle()
+        if self.max_angle > self.patterns.diffpats[0][-1] or self.max_angle == -1:
+            self.max_angle = self.patterns.diffpats[0][-1]
 
-        nstps = self.patterns[0].getNumOfDataPoints()
+        nstps = len(self.patterns.diffpats[0])
+
+        # interpolate everything to match the first diffpat
+        ave_step = self.patterns.diffpats[0].ave_step_size
+        self.patterns.interpolate(ave_step, in_place=True)
 
         self.s_array = [0] * nstps
-        self.angle_array = self.patterns[0].getAngles()
+        self.angle_array = self.patterns.diffpats[0].xs
         self.summary = [[None] * 8] * nstps
 
-
-    def calc_sum_array(self, writeSummary=True):
+    def calc_sum_array(self, writeSummary=True) -> None:
         """
         Calculates the number of diffpats to add together at each angle
 
@@ -645,18 +640,18 @@ class PVCT:
 
         """
         print("Calculating sum array...")
-        f = 1.0 / self.D  # fraction of datasets to use as a constant too all angles - Ian uses f = 0.1 for his stuff
-        Dmin = int(round(max(1, f * self.D)))
-        Dmax = self.D - Dmin
+        f = 1.0 / self.d  # fraction of datasets to use as a constant too all angles - Ian uses f = 0.1 for his stuff
+        d_min = int(round(max(1, f * self.d)))
+        d_max = self.d - d_min
 
-        # Pmax is value of P at the minAngle
-        Pmax = self.temperatureFactor(self.min_angle) * \
+        # p_max is value of P at the minAngle
+        p_max = self.temperatureFactor(self.min_angle) * \
                self.LPFactor(self.min_angle) * \
                self.averageScatteringFactorSquared(self.min_angle) * \
                self.absorption(self.min_angle)
 
-        # Pmin is the minimum value of P, that is less than maxAngle
-        Pmin = sys.float_info.max
+        # p_min is the minimum value of P, that is less than maxAngle
+        p_min = sys.float_info.max
 
         for i in range(len(self.s_array)):
             angle = self.angle_array[i]
@@ -669,17 +664,17 @@ class PVCT:
                   self.averageScatteringFactorSquared(angle) * \
                   self.absorption(angle)
 
-            if tmp < Pmin and angle < self.max_angle:
-                Pmin = tmp
+            if tmp < p_min and angle < self.max_angle:
+                p_min = tmp
 
         if writeSummary:
             print("Writing summary.txt.")
             f = open("summary.txt", "w")
-            f.write("Pmax\tPmin\tDmax\tDmin\n")
-            f.write("{:.{dps}f}\t".format(Pmax, dps=5))
-            f.write("{:.{dps}f}\t".format(Pmin, dps=5))
-            f.write("{:.{dps}f}\t".format(Dmax, dps=5))
-            f.write("{:.{dps}f}\n\n".format(Dmin, dps=5))
+            f.write("p_max\tp_min\tDmax\tDmin\n")
+            f.write("{:.{dps}f}\t".format(p_max, dps=5))
+            f.write("{:.{dps}f}\t".format(p_min, dps=5))
+            f.write("{:.{dps}f}\t".format(d_max, dps=5))
+            f.write("{:.{dps}f}\n\n".format(d_min, dps=5))
 
             f.write("angle\tSFsq\tLP\tTF\tA\tP\tPstar\tS\n")
 
@@ -696,21 +691,21 @@ class PVCT:
 
             P = SFsq * LP * TF * A
             try:
-                Pstar = ((Pmax / P) - 1) / ((Pmax / Pmin) - 1)
+                p_star = ((p_max / P) - 1) / ((p_max / p_min) - 1)
             except ZeroDivisionError:
-                Pstar = float('inf')
+                p_star = float('inf')
 
-            S = max(0, Pstar * Dmax) + Dmin
+            s = max(0, p_star * d_max) + d_min
 
-            if math.isinf(S) or (self.isFlatPlate and angle < self.muR + 0.5):  # for angles below the fib angle + 0.5 deg
-                S = 1.0
+            if math.isinf(s) or (self.isFlatPlate and angle < self.muR + 0.5):  # for angles below the fib angle + 0.5 deg
+                s = 1.0
 
             if angle < self.max_angle:  # then update the S_maxangle value
-                S_maxAngle = S
+                s_max_angle = s
             else:  # you're past the max angle, and you want to keep the last calculated value of S.
-                S = S_maxAngle
+                s = s_max_angle
 
-            self.s_array[i] = round(S)
+            self.s_array[i] = round(s)
 
             #  for somereason, this only gives me multiple copies of the last entry....
             if writeSummary:
@@ -720,14 +715,15 @@ class PVCT:
                 f.write("{:.{dps}f}\t".format(TF, dps=5))
                 f.write("{:.{dps}f}\t".format(A, dps=5))
                 f.write("{:.{dps}f}\t".format(P, dps=5))
-                f.write("{:.{dps}f}\t".format(Pstar, dps=7))
+                f.write("{:.{dps}f}\t".format(p_star, dps=7))
                 f.write("{:.{dps}f}\n".format(self.s_array[i], dps=0))
 
         if writeSummary:
             f.close()
 
+        print(f"{self.s_array=}")
 
-    def combine_files(self):
+    def combine_files(self) -> None:
         print("Trimming files...")
         for i in range(len(self.patterns)):
             print(f"{i} of {len(self.patterns)}", end="\r", flush=True)
@@ -749,18 +745,18 @@ class PVCT:
         for i in range(len(self.s_array)):
             self.pvct.diffpat[i] /= self.s_array[i]  # /= in-place divide is faster than /
 
-    def writeToFile(self, dp_angle=5, dp_intensity=3, dp_error=3):
-        file = removeExtension(self.filenames[0]) + "_pvct.xye"
+    def writeToFile(self, dp_angle: int = 5, dp_intensity: int = 3, dp_error: int = 3) -> None:
+        file = remove_extension(self.filenames[0]) + "_pvct.xye"
         # print(f"Writing to {file}")
         self.pvct.writeToFile(file, dp_angle, dp_intensity, dp_error)
 
-    def writeSumToFile(self, dp_angle=5, dp_intensity=3, dp_error=3):
-        file = removeExtension(self.filenames[0]) + "_pvct_sum.xye"
+    def writeSumToFile(self, dp_angle: float = 5, dp_intensity: float = 3, dp_error: float = 3) -> None:
+        file = remove_extension(self.filenames[0]) + "_pvct_sum.xye"
         # print(f"Writing sum to {file}")
         self.pvct_sum.writeToFile(file, dp_angle, dp_intensity, dp_error)
 
     # angle is in 2Th deg
-    def temperatureFactor(self, angle):
+    def temperatureFactor(self, angle: float) -> float:
         """
         find the value of the effect of the temperature factor on the scattering power
         math.exp(-2.0 * self.B * sin * sin)
@@ -773,14 +769,14 @@ class PVCT:
         Returns
         -------
         float
-            The valu.
+            The value.
 
         """
         sin = math.sin(math.radians(angle / 2)) / self.lam
         return math.exp(-2.0 * self.B * sin * sin)
 
     # angle and mono are in 2Th deg
-    def LPFactor(self, angle):
+    def LPFactor(self, angle: float) -> float:
         """
         Find the magnitude of the LP factor at an angle
 
@@ -800,7 +796,7 @@ class PVCT:
         return (1 + math.pow(math.cos(mon) * math.cos(ang), 2)) / (2 * math.cos(ang / 2) * math.pow(math.sin(ang / 2), 2))
 
     # angle is in 2Th deg
-    def scatteringFactor(self, element, angle):
+    def scatteringFactor(self, element: str, angle: float) -> float:
         """
         find the magnitude of the scattering factor at a given angle
 
@@ -828,7 +824,7 @@ class PVCT:
 
         return f
 
-    def scatteringFactorSquared(self, element, angle):
+    def scatteringFactorSquared(self, element: str, angle: float) -> float:
         """ Returns the square of the scattering factor"""
         return self.scatteringFactor(element, angle) ** 2
 
@@ -862,16 +858,16 @@ class PVCT:
         f /= n
         return f
 
-    def averageScatteringFactorSquared(self, angle):
+    def averageScatteringFactorSquared(self, angle: float) -> float:
         """Square of the average scattering factor"""
         return self.averageScatteringFactor(angle) ** 2
 
-    def capillaryAbsorption(self, angle):
+    def capillaryAbsorption(self, angle: float) -> float:
         """
         What is the effect of capillary absorption ate a given angle
 
         Parameters
-        ----------\
+        ----------
         angle : float diffraction angle in deg 2 Th
 
         Returns
@@ -886,7 +882,7 @@ class PVCT:
         z = 2 * self.muR
         return AL(z) * math.cos(ang) * math.cos(ang) + AB(z) * math.sin(ang) * math.sin(ang)
 
-    def flatPlateAbsorption(self, angle):
+    def flatPlateAbsorption(self, angle: float) -> float:
         """
         What is the effect of fixed-incident beame, flat plate absorption with angle?
 
@@ -909,7 +905,7 @@ class PVCT:
         ome = math.radians(omega)
         return 2 / (1 + (math.sin(ome) / math.sin(ang - ome)))
 
-    def absorption(self, angle):
+    def absorption(self, angle: float) -> float:
         """
         Decide if a value is a flat plate or capillary absorption, and return the correct interpretation
 
@@ -927,3 +923,14 @@ class PVCT:
             return self.flatPlateAbsorption(angle)
         else:
             return self.capillaryAbsorption(angle)
+
+
+def main():
+    t6 = [1, 1, 2, 2, 2, 2, 2, 4, 4, 4, 5, 5, 5, 4, 4, 4, 4, 2, 2, 2]
+
+    for i in range(1, 6):
+        print(f"{i=}: {first_last_index(t6,i    )=}")
+
+
+if __name__ == "__main__":
+    main()
