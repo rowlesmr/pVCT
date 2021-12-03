@@ -14,7 +14,12 @@ from typing import List, Tuple
 
 def first_last_index(lst: List[int], val: int) -> Tuple[int, int]:
     """
-    Returns a tuple containing the first and last indicies
+    Searches the given list for the appearance of the given value.
+    Returns a tuple containing the first and last indicies.
+    The indices refer to the first and last appearance of the val, the first or last appearance of a value bigger then that val
+    if val doesn't appear in the list, or the start and end of the list, if it doesn't appear at all.
+
+    Indicies are inclusive
 
     If the number doesn't appear at the end, then len(lst)
     is returned in it's place
